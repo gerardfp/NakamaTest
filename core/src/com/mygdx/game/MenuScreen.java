@@ -1,15 +1,19 @@
 package com.mygdx.game;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.google.common.util.concurrent.FutureCallback;
+import com.heroiclabs.nakama.Match;
+import com.mygdx.game.mywidgets.GameScreen;
+import com.mygdx.game.mywidgets.MyLabel;
 import com.mygdx.game.mywidgets.MyScreen;
+import com.mygdx.game.mywidgets.MyTextButton;
+import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 
 public class MenuScreen extends MyScreen {
     Table table;
+    boolean matchCreated;
+    boolean joinGame;
 
     public MenuScreen(MyGdxGame game) {
         super(game);
@@ -21,11 +25,9 @@ public class MenuScreen extends MyScreen {
         table.setFillParent(true);
         stage.addActor(table);
 
-        TextButton create = new TextButton("CREATE GAME", Assets.skin);
-        TextButton join = new TextButton("JOIN GAME", Assets.skin);
-
-        Label error = new Label("", Assets.skin);
-        error.setColor(Color.RED);
+        MyTextButton create = new MyTextButton("CREATE GAME");
+        MyTextButton join = new MyTextButton("JOIN GAME");
+        MyLabel error = new MyLabel("", Color.RED);
 
         table.add(create);
         table.row();
@@ -33,12 +35,26 @@ public class MenuScreen extends MyScreen {
         table.row();
         table.add(error);
 
-        create.addListener(new ClickListener(){
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 
-                return true;
+        create.onClick(() ->  Nakama.createMatch(new FutureCallback<Match>() {
+            @Override
+            public void onSuccess(@NullableDecl Match result) {
+                matchCreated = true;
             }
-        });
+
+            @Override
+            public void onFailure(Throwable t) {
+
+            }
+        }));
+    }
+
+    @Override
+    public void render(float delta) {
+        super.render(delta);
+
+        if(matchCreated){
+            setScreen(new GameScreen(game));
+        }
     }
 }
